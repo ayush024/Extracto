@@ -28,7 +28,9 @@ class Test1Spider(scrapy.Spider):
 		detail_link = response.css('a.s-access-detail-page::attr(href)').extract()
 		for link in detail_link:
 			link = response.urljoin(link)
-			yield scrapy.Request(link, callback = self.parse_item)
+			request = scrapy.Request(link, callback = self.parse_item)
+			request.meta['category'] = self.categories[self.index]
+			yield request
 					
 		next_page_link = response.css('a#pagnNextLink::attr(href)').extract_first()
 		if self.next_page_count < 3 and next_page_link:
@@ -57,6 +59,8 @@ class Test1Spider(scrapy.Spider):
 			for fragment in price.strip('$').split(','):
 				item['price'] = item['price'] + fragment.strip(',')
 			item['price'] = float(item['price'])	
+		
+		item['category'] = response.meta['category']		
 
 		no_of_reviews = response.css('span#acrCustomerReviewText::text').extract_first()
 		item['no_of_reviews'] = 0 if no_of_reviews==None else no_of_reviews.strip(' customer reviews')
